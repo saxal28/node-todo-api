@@ -76,6 +76,7 @@ app.patch("/todos/:id", (req,res) => {
   } else {
     body.completed = false;
     body.completedAt = null;
+
   }
 
   Todo.findByIdAndUpdate(id, {$set: body}).then(todo => {
@@ -85,6 +86,27 @@ app.patch("/todos/:id", (req,res) => {
 
     res.send({todo});
   }).catch(e => res.status(400).send())
+})
+
+//POST /user => new user
+// use ._pick to pick off actions
+//shut down database, wipe database, and restart
+app.post("/users", (req, res) => {
+  var properties = _.pick(req.body, ["email","password"]);
+  var user = new User({
+    email: properties.email,
+    password: properties.password
+  });
+
+  user.save().then(() => {
+    user.generateAuthToken();
+    // res.send(user)
+  }).then(token => {
+    res.header("x-auth", token).send(user);
+  }).catch(e =>  {
+    console.log(e)
+    res.status(400).send(e);
+  })
 })
 
 app.listen(port, () => {
